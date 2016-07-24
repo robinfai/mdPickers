@@ -264,6 +264,12 @@ mdp-calendar {
 .mdp-calendar-days .mdp-day-placeholder {
   margin: 0;
 }
+.mdp-datepicker-month {
+  font-size: 1.8rem;
+}
+.mdp-clock-switch-container .mdp-clock {
+  margin: 16px 57px 16px 52px;
+}
 .mdp-clock {
   width: 200px;
   height: 200px;
