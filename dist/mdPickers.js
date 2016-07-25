@@ -694,6 +694,33 @@ function DateTimePickerCtrl($scope, $mdDialog, $mdMedia, $timeout, currentDate, 
     this.VIEW_YEARS = 5;
     this.currentView = this.VIEW_DAYS;
     this.autoSwitch = true;
+    if(this.autoSwitch){
+        $scope.$watch(function(){
+            return self.date.date();
+        },function(newValue,oldValue){
+            if(newValue!=oldValue){
+                self.switchView(self.VIEW_HOURS);
+            }
+        });
+        $scope.$watch(function(){
+            return self.date.hours();
+        },function(newValue,oldValue){
+            if(newValue!=oldValue){
+                self.switchView(self.VIEW_MINUTES);
+            }
+        });
+        $scope.$watch(function(){
+            return self.date.minutes();
+        },function(newValue,oldValue){
+            if(newValue!=oldValue){
+                self.switchView(self.VIEW_DAYS);
+            }
+        });
+    }
+
+    this.getMonthName = function(month){
+        return moment().month(month-1).format('MMM');
+    };
 
     this.switchView = function (view) {
         switch (view){
@@ -770,7 +797,7 @@ module.provider("$mdpDateTimePicker", function() {
                                     '<div class="mdp-datepicker-select-year mdp-animation-zoom" layout="column" layout-align="center start"  ng-if="datepicker.currentView == datepicker.VIEW_MONTHS">' +
                                         '<md-virtual-repeat-container md-auto-shrink md-top-index="datepicker.monthTopIndex">' +
                                             '<div flex md-virtual-repeat="item in datepicker.monthItems" md-on-demand class="repeated-year">' +
-                                                '<span class="md-button" ng-click="datepicker.selectMonth(item)" md-ink-ripple ng-class="{ \'md-primary current\': item == month }">{{ item }}</span>' +
+                                                '<span class="md-button" ng-click="datepicker.selectMonth(item)" md-ink-ripple ng-class="{ \'md-primary current\': item == month }">{{ datepicker.getMonthName(item) }}</span>' +
                                             '</div>' +
                                         '</md-virtual-repeat-container>' +
                                     '</div>' +
