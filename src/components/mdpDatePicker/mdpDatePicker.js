@@ -206,6 +206,7 @@ function CalendarCtrl($scope) {
     
     this.selectDate = function(dom) {
         self.date.date(dom);
+        $scope.$emit('clockSetTime', self.date, 'days');
     };
 
     this.nextMonth = function() {

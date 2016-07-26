@@ -187,6 +187,7 @@ module.directive("mdpClock", ["$animate", "$timeout", function ($animate, $timeo
 
             element.on("mouseup", function (e) {
                 element.off("mousemove");
+                scope.$emit('clockSetTime', ctrl.time, ctrl.type);
             });
 
             element.on("click", onEvent);

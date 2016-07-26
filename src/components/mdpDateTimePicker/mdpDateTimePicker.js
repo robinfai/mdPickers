@@ -6,6 +6,7 @@ function DateTimePickerCtrl($scope, $mdDialog, $mdMedia, $timeout, currentDate, 
     this.date = this.time = moment(currentDate);
     this.minDate = options.minDate && moment(options.minDate).isValid() ? moment(options.minDate) : null;
     this.maxDate = options.maxDate && moment(options.maxDate).isValid() ? moment(options.maxDate) : null;
+    this.autoSwitch = options.autoSwitch;
     this.displayFormat = options.displayFormat || "DD,ddd";
     this.dateFilter = angular.isFunction(options.dateFilter) ? options.dateFilter : null;
 
@@ -114,29 +115,26 @@ function DateTimePickerCtrl($scope, $mdDialog, $mdMedia, $timeout, currentDate, 
     this.VIEW_MONTHS = 4;
     this.VIEW_YEARS = 5;
     this.currentView = this.VIEW_DAYS;
-    this.autoSwitch = true;
     if(this.autoSwitch){
-        $scope.$watch(function(){
-            return self.date.date();
-        },function(newValue,oldValue){
-            if(newValue!=oldValue){
-                self.switchView(self.VIEW_HOURS);
+        $scope.$on('clockSetTime',function(event,time,type){
+            switch (type){
+                case 'days':
+                    self.date.date(time.date());
+                    self.switchView(self.VIEW_HOURS);
+                    break;
+                case 'hours':
+                    self.date.hours(time.hours());
+                    self.switchView(self.VIEW_MINUTES);
+                    break;
+                case 'minutes':
+                    self.date.minutes(time.minutes());
+                    self.switchView(self.VIEW_DAYS);
+                    break;
             }
-        });
-        $scope.$watch(function(){
-            return self.date.hours();
-        },function(newValue,oldValue){
-            if(newValue!=oldValue){
-                self.switchView(self.VIEW_MINUTES);
-            }
-        });
-        $scope.$watch(function(){
-            return self.date.minutes();
-        },function(newValue,oldValue){
-            if(newValue!=oldValue){
-                self.switchView(self.VIEW_DAYS);
-            }
-        });
+            $timeout(function(){
+                $scope.$digest();
+            });
+        })
     }
 
     this.getMonthName = function(month){
@@ -247,3 +245,47 @@ module.provider("$mdpDateTimePicker", function() {
         return datePicker;
     }];
 });
+
+module.directive("mdpDateTimePicker", ["$mdpDateTimePicker", function($mdpDateTimePicker) {
+    return  {
+        restrict: 'A',
+        require: 'ngModel',
+        scope: {
+            "minDate": "@min",
+            "maxDate": "@max",
+            "autoSwitch": '@autoSwitch',
+            "dateFilter": "=mdpDateFilter",
+            "dateFormat": "@mdpFormat",
+        },
+        link: function(scope, element, attrs, ngModel) {
+            scope.dateFormat = scope.dateFormat || "YYYY-MM-DD HH:mm";
+            ngModel.$parsers.push(function(value) {
+                var viewValue = moment(value).format(scope.dateFormat);
+                ngModel.$setViewValue(viewValue);
+                return viewValue;
+            });
+            ngModel.$formatters.push(function(value) {
+                return moment(value).format(scope.dateFormat);
+            });
+
+            function showPicker(ev) {
+                $mdpDateTimePicker(ngModel.$modelValue, {
+                    minDate: scope.minDate,
+                    maxDate: scope.maxDate,
+                    autoSwitch:scope.autoSwitch,
+                    dateFilter: scope.dateFilter,
+                    targetEvent: ev
+                }).then(function(time) {
+                    ngModel.$setViewValue(moment(time).format(scope.dateFormat));
+                    ngModel.$render();
+                });
+            };
+
+            element.on("click", showPicker);
+
+            scope.$on("$destroy", function() {
+                element.off("click", showPicker);
+            });
+        }
+    }
+}]);
