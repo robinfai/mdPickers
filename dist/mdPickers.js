@@ -772,6 +772,7 @@ module.provider("$mdpDateTimePicker", function() {
                 controller:  ['$scope', '$mdDialog', '$mdMedia', '$timeout', 'currentDate', 'options', DateTimePickerCtrl],
                 controllerAs: 'datepicker',
                 clickOutsideToClose: true,
+                parent: options.parent,
                 template: '<md-dialog aria-label="" class="mdp-datepicker" ng-class="{ \'portrait\': !$mdMedia(\'gt-xs\') }">' +
                             '<md-dialog-content layout="row" layout-wrap>' +
                                 '<div layout="column" layout-align="start center">' +
@@ -836,16 +837,23 @@ module.directive("mdpDateTimePicker", ["$mdpDateTimePicker", function($mdpDateTi
             "autoSwitch": '@autoSwitch',
             "dateFilter": "=mdpDateFilter",
             "dateFormat": "@mdpFormat",
+            "parent": "@mdpParent"
         },
         link: function(scope, element, attrs, ngModel) {
             scope.dateFormat = scope.dateFormat || "YYYY-MM-DD HH:mm";
-            ngModel.$parsers.push(function(value) {
-                var viewValue = moment(value).format(scope.dateFormat);
+            ngModel.$parsers.push(function (value) {
+                var viewValue = null;
+                if (moment(value).isValid()) {
+                    viewValue = moment(value).format(scope.dateFormat);
+                }
                 ngModel.$setViewValue(viewValue);
                 return viewValue;
             });
-            ngModel.$formatters.push(function(value) {
-                return moment(value).format(scope.dateFormat);
+            ngModel.$formatters.push(function (value) {
+                if (moment(value).isValid()) {
+                    return moment(value).format(scope.dateFormat);
+                }
+                return null;
             });
 
             function showPicker(ev) {
@@ -854,6 +862,7 @@ module.directive("mdpDateTimePicker", ["$mdpDateTimePicker", function($mdpDateTi
                     maxDate: scope.maxDate,
                     autoSwitch:scope.autoSwitch,
                     dateFilter: scope.dateFilter,
+                    parent: scope.parent,
                     targetEvent: ev
                 }).then(function(time) {
                     ngModel.$setViewValue(moment(time).format(scope.dateFormat));
