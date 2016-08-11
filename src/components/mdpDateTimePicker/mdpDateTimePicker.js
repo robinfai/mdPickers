@@ -183,6 +183,10 @@ module.provider("$mdpDateTimePicker", function() {
 
     this.$get = ["$mdDialog", function($mdDialog) {
         var datePicker = function(currentDate, options) {
+            var current = moment(currentDate)
+            if (current.isValid()) {
+                currentDate = current.toDate();
+            }
             if (!angular.isDate(currentDate)) currentDate = Date.now();
             if (!angular.isObject(options)) options = {};
 
@@ -263,14 +267,14 @@ module.directive("mdpDateTimePicker", ["$mdpDateTimePicker", function($mdpDateTi
             scope.dateFormat = scope.dateFormat || "YYYY-MM-DD HH:mm";
             ngModel.$parsers.push(function (value) {
                 var viewValue = null;
-                if (moment(value).isValid()) {
+                if (value && moment(value).isValid()) {
                     viewValue = moment(value).format(scope.dateFormat);
                 }
                 ngModel.$setViewValue(viewValue);
                 return viewValue;
             });
             ngModel.$formatters.push(function (value) {
-                if (moment(value).isValid()) {
+                if (value && moment(value).isValid()) {
                     return moment(value).format(scope.dateFormat);
                 }
                 return null;
